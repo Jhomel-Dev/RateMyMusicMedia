@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const trackModel = mongoose.Schema({
+const trackSchema = new mongoose.Schema({
     artistId: { type: String, required: true },
     title:    { type: String, required: true, trim: true },
     audioUrl: { type: String, required: true },
@@ -11,5 +11,5 @@ const trackModel = mongoose.Schema({
 
 trackSchema.index({ genre: 1, eloScore: -1 });
 
-const TrackModel = mongoose.model("Track", trackSchema);
+const TrackModel = mongoose.model("Track", trackSchema)
 export default TrackModel;
