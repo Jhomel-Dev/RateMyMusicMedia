@@ -1,7 +1,8 @@
-import cloudinary from "../config/cloudinary.js"
-import Track from "../models/track.model.js"
+import cloudinary from "../config/cloudinary.js";
+import Track from "../models/track.model.js";
+import Vote from "../models/vote.model.js";
 
-export class UploadTrackService {
+export class TrackService {
 
     async uploadTrack(userId, title, genre, fileBuffer) {
         let cloudinaryResult;
@@ -42,4 +43,42 @@ export class UploadTrackService {
             createdAt: savedTrack.createdAt
         };
     }
-}
+
+    async getFeed(userId, genres, limit) {
+        const userVotes = await Vote.find({ voterId: userId }).select('trackId').lean();
+        const votedTrackIds = userVotes.map(vote => vote.trackId);
+
+        const query = { _id: { $nin: votedTrackIds } };
+
+        if (genres && genres.length > 0) {
+            query.genre = { $in: genres };
+        }
+
+        const tracks = await Track.find(query)
+            .sort({ eloScore: -1 })
+            .limit(limit)
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
+    }
+
+    async getRankingsByGenre(genre) {
+        const genreRegex = new RegExp(`^${genre}$`, 'i');
+
+        const tracks = await Track.find({ genre: genreRegex })
+            .select('title artistId audioUrl eloScore genre')
+            .sort({ eloScore: -1 })
+            .limit(50)
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
+    }
+}   

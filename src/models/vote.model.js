@@ -7,7 +7,7 @@ const voteSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
-voteSchema.index({ trackId: 1, voterId: 1 }, { unique: true });
+voteSchema.index({ voterId: 1, trackId: 1 }, { unique: true });
 
 const VoteModel = mongoose.model("Vote", voteSchema);
 export default VoteModel;
