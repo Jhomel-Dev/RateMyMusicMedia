@@ -65,4 +65,20 @@ export class TrackService {
             return track;
         });
     }
-}
+
+    async getRankingsByGenre(genre) {
+        const genreRegex = new RegExp(`^${genre}$`, 'i');
+
+        const tracks = await Track.find({ genre: genreRegex })
+            .select('title artistId audioUrl eloScore genre')
+            .sort({ eloScore: -1 })
+            .limit(50)
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
+    }
+}   

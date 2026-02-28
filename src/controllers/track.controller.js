@@ -18,7 +18,6 @@ export const uploadTrack = async (req, res, next) => {
         return res.status(201).json(result);    
 
     } catch (error) {
-        // Le pasamos el error a Express para que el globalErrorHandler lo procese
         next(error);
     }
 };
@@ -44,6 +43,23 @@ export const getFeed = async (req, res, next) => {
         }
 
         return res.status(200).json({ tracks });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getRankings = async (req, res, next) => {
+    try {
+        const { genre } = req.params;
+
+        if (!genre || genre.trim() === '') {
+            throw { status: 400, message: "Genre parameter is required" };
+        }
+
+        const rankings = await trackService.getRankingsByGenre(genre.trim());
+
+        return res.status(200).json({ rankings });
 
     } catch (error) {
         next(error);

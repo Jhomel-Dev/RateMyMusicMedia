@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate, requireRole } from '../middlewares/auth.middleware.js';
 import { uploadMiddleware } from '../middlewares/upload.middleware.js';
-import { uploadTrack, getFeed } from '../controllers/track.controller.js';
+import { uploadTrack, getFeed, getRankings } from '../controllers/track.controller.js';
 
 const trackRouter = Router();
 
@@ -15,6 +15,10 @@ trackRouter.post('/upload',
 trackRouter.get('/feed', 
     authenticate, 
     getFeed
+);
+
+trackRouter.get('/rankings/:genre', 
+    getRankings
 );
 
 export default trackRouter;
