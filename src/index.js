@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import morgan from "morgan"
 import trackRouter from "./routes/track.route.js"
+import voteRouter from "./routes/vote.route.js"
 import { globalErrorHandler } from "./middlewares/error.middleware.js"
 
 const app = express();
@@ -16,6 +17,7 @@ app.get("/health", (req, res) => {
 })
 
 app.use('/api/track', trackRouter)
+app.use('/api/votes', voteRouter); 
 app.use(globalErrorHandler)
 
 
