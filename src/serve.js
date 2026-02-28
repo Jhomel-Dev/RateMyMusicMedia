@@ -7,6 +7,6 @@ const port = process.env.PORT || 3000
 await Database.connectDb()
 
 app.listen(port, () => {
-    console.log(`server running on port: ${port}`)
+    console.log(`[Music Service]: server running on port: ${port}`)
 })
 
