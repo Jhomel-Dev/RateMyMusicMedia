@@ -9,4 +9,8 @@ app.use(morgan("dev"))
 app.use(cors())
 
 
+app.get("/health", (req, res) => {
+    res.json({ status: "ok", service: "music" })
+})
+
 export default app;
