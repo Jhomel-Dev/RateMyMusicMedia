@@ -1,7 +1,8 @@
-import cloudinary from "../config/cloudinary.js"
-import Track from "../models/track.model.js"
+import cloudinary from "../config/cloudinary.js";
+import Track from "../models/track.model.js";
+import Vote from "../models/vote.model.js";
 
-export class UploadTrackService {
+export class TrackService {
 
     async uploadTrack(userId, title, genre, fileBuffer) {
         let cloudinaryResult;
@@ -41,5 +42,27 @@ export class UploadTrackService {
             eloScore: savedTrack.eloScore,
             createdAt: savedTrack.createdAt
         };
+    }
+
+    async getFeed(userId, genres, limit) {
+        const userVotes = await Vote.find({ voterId: userId }).select('trackId').lean();
+        const votedTrackIds = userVotes.map(vote => vote.trackId);
+
+        const query = { _id: { $nin: votedTrackIds } };
+
+        if (genres && genres.length > 0) {
+            query.genre = { $in: genres };
+        }
+
+        const tracks = await Track.find(query)
+            .sort({ eloScore: -1 })
+            .limit(limit)
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
     }
 }

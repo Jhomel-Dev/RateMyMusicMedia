@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { authenticate, requireRole } from '../middlewares/auth.Middleware.js';
-import { uploadMiddleware } from '../middlewares/upload.Middleware.js';
-import { uploadTrack } from '../controllers/track.controller.js';
+import { authenticate, requireRole } from '../middlewares/auth.middleware.js';
+import { uploadMiddleware } from '../middlewares/upload.middleware.js';
+import { uploadTrack, getFeed } from '../controllers/track.controller.js';
 
 const trackRouter = Router();
 
@@ -10,6 +10,11 @@ trackRouter.post('/upload',
     requireRole('Artist'), 
     uploadMiddleware.single('audio'), 
     uploadTrack
+);
+
+trackRouter.get('/feed', 
+    authenticate, 
+    getFeed
 );
 
 export default trackRouter;
