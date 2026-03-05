@@ -4,20 +4,28 @@ const trackService = new TrackService();
 
 export const uploadTrack = async (req, res, next) => {
     try {
+        console.log("[uploadTrack] Handler entered.");
+        console.log("[uploadTrack] req.file:", req.file ? `YES (size: ${req.file.size} bytes, mimetype: ${req.file.mimetype})` : "NO");
+        console.log("[uploadTrack] req.body:", JSON.stringify(req.body));
+        console.log("[uploadTrack] req.user:", JSON.stringify(req.user));
+
         if (!req.file) {
             throw { status: 400, message: "Audio file is required" };
         }
-        
+
         const { title, genre } = req.body;
         if (!title || !genre) {
             throw { status: 400, message: "Title and genre are required" };
         }
 
+        console.log("[uploadTrack] Starting Cloudinary upload...");
         const result = await trackService.uploadTrack(req.user.id, title, genre, req.file.buffer);
+        console.log("[uploadTrack] Cloudinary upload complete:", JSON.stringify(result));
 
-        return res.status(201).json(result);    
+        return res.status(201).json(result);
 
     } catch (error) {
+        console.error("[uploadTrack] Error caught:", error);
         next(error);
     }
 };
@@ -36,9 +44,9 @@ export const getFeed = async (req, res, next) => {
         const tracks = await trackService.getFeed(userId, genres, limitParam);
 
         if (tracks.length === 0) {
-            return res.status(200).json({ 
-                tracks: [], 
-                message: "No more tracks available" 
+            return res.status(200).json({
+                tracks: [],
+                message: "No more tracks available"
             });
         }
 

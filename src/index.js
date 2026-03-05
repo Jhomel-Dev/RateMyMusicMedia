@@ -7,7 +7,8 @@ import { globalErrorHandler } from "./middlewares/error.middleware.js"
 
 const app = express();
 
-app.use(express.json()) 
+app.use(express.json({ limit: "50mb" }))
+app.use(express.urlencoded({ limit: "50mb", extended: true }))
 app.use(morgan("dev"))
 app.use(cors())
 
@@ -16,8 +17,8 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok", service: "music" })
 })
 
-app.use('/api/track', trackRouter)
-app.use('/api/votes', voteRouter); 
+app.use('/api/tracks', trackRouter)
+app.use('/api/votes', voteRouter);
 app.use(globalErrorHandler)
 
 

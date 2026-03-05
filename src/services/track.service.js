@@ -7,21 +7,15 @@ export class TrackService {
     async uploadTrack(userId, title, genre, fileBuffer) {
         let cloudinaryResult;
         try {
-            cloudinaryResult = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: 'rate_my_music/tracks',
-                        resource_type: 'video'
-                    },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
-                uploadStream.end(fileBuffer);
+            const dataUri = `data:audio/wav;base64,${fileBuffer.toString('base64')}`;
+            cloudinaryResult = await cloudinary.uploader.upload(dataUri, {
+                folder: 'rate_my_music/tracks',
+                resource_type: 'video',
+                timeout: 600000
             });
         } catch (error) {
-            throw { status: 502, message: "Error uploading to Cloudinary" };
+            console.error("[TrackService] Cloudinary upload FAILED. Raw error:", error);
+            throw { status: 502, message: "Error uploading to Cloudinary: " + (error.message || JSON.stringify(error)) };
         }
 
         const newTrack = new Track({

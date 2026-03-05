@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 
 export const authenticate = (req, res, next) => {
+    console.log("Incoming request to Media auth middleware:", req.method, req.path);
+    console.log("Headers received:", req.headers);
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -18,7 +20,7 @@ export const authenticate = (req, res, next) => {
 
         const decoded = jwt.verify(token, secretKey);
 
-        const userId = decoded.sub || decoded.id; 
+        const userId = decoded.sub || decoded.id;
         const role = decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
         const genres = decoded.genres ? decoded.genres.split(',') : [];
         req.user = {
@@ -29,6 +31,7 @@ export const authenticate = (req, res, next) => {
 
         next();
     } catch (error) {
+        console.error("JWT Verification failed:", error.message);
         return res.status(401).json({ error: "Invalid or expired token" });
     }
 };
