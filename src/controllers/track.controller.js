@@ -30,6 +30,15 @@ export const uploadTrack = async (req, res, next) => {
     }
 };
 
+export const getAllTracks = async (req, res, next) => {
+    try {
+        const tracks = await trackService.getAllTracks();
+        return res.status(200).json(tracks);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getFeed = async (req, res, next) => {
     try {
         const limitParam = req.query.limit ? parseInt(req.query.limit, 10) : 5;

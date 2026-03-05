@@ -38,6 +38,18 @@ export class TrackService {
         };
     }
 
+    async getAllTracks() {
+        const tracks = await Track.find()
+            .sort({ eloScore: -1 })
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
+    }
+
     async getFeed(userId, genres, limit) {
         const userVotes = await Vote.find({ voterId: userId }).select('trackId').lean();
         const votedTrackIds = userVotes.map(vote => vote.trackId);
