@@ -28,3 +28,13 @@ export const castVote = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getUserVotes = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const votes = await voteService.getUserVotes(userId);
+        return res.status(200).json(votes);
+    } catch (error) {
+        next(error);
+    }
+};

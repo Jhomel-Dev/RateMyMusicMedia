@@ -4,28 +4,23 @@ import Vote from "../models/vote.model.js";
 
 export class TrackService {
 
-    async uploadTrack(userId, title, genre, fileBuffer) {
+    async uploadTrack(userId, username, title, genre, fileBuffer) {
         let cloudinaryResult;
         try {
-            cloudinaryResult = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    {
-                        folder: 'rate_my_music/tracks',
-                        resource_type: 'video'
-                    },
-                    (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result);
-                    }
-                );
-                uploadStream.end(fileBuffer);
+            const dataUri = `data:audio/wav;base64,${fileBuffer.toString('base64')}`;
+            cloudinaryResult = await cloudinary.uploader.upload(dataUri, {
+                folder: 'rate_my_music/tracks',
+                resource_type: 'video',
+                timeout: 600000
             });
         } catch (error) {
-            throw { status: 502, message: "Error uploading to Cloudinary" };
+            console.error("[TrackService] Cloudinary upload FAILED. Raw error:", error);
+            throw { status: 502, message: "Error uploading to Cloudinary: " + (error.message || JSON.stringify(error)) };
         }
 
         const newTrack = new Track({
             artistId: userId,
+            artistName: username,
             title: title,
             genre: genre,
             audioUrl: cloudinaryResult.secure_url,
@@ -36,12 +31,25 @@ export class TrackService {
 
         return {
             id: savedTrack._id,
+            artistName: savedTrack.artistName,
             title: savedTrack.title,
             genre: savedTrack.genre,
             audioUrl: savedTrack.audioUrl,
             eloScore: savedTrack.eloScore,
             createdAt: savedTrack.createdAt
         };
+    }
+
+    async getAllTracks() {
+        const tracks = await Track.find()
+            .sort({ eloScore: -1 })
+            .lean();
+
+        return tracks.map(track => {
+            track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
     }
 
     async getFeed(userId, genres, limit) {
@@ -70,7 +78,7 @@ export class TrackService {
         const genreRegex = new RegExp(`^${genre}$`, 'i');
 
         const tracks = await Track.find({ genre: genreRegex })
-            .select('title artistId audioUrl eloScore genre')
+            .select('title artistId artistName audioUrl eloScore genre')
             .sort({ eloScore: -1 })
             .limit(50)
             .lean();

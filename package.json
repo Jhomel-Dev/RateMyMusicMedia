@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --env-file=.env src/serve.js"
+    "dev": "node --env-file=.env --watch src/serve.js",
+    "start": "node --env-file=.env src/serve.js"
   },
   "keywords": [],
   "author": "",
