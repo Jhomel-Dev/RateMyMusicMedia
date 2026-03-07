@@ -4,7 +4,7 @@ import Vote from "../models/vote.model.js";
 
 export class TrackService {
 
-    async uploadTrack(userId, title, genre, fileBuffer) {
+    async uploadTrack(userId, username, title, genre, fileBuffer) {
         let cloudinaryResult;
         try {
             const dataUri = `data:audio/wav;base64,${fileBuffer.toString('base64')}`;
@@ -20,6 +20,7 @@ export class TrackService {
 
         const newTrack = new Track({
             artistId: userId,
+            artistName: username,
             title: title,
             genre: genre,
             audioUrl: cloudinaryResult.secure_url,
@@ -30,6 +31,7 @@ export class TrackService {
 
         return {
             id: savedTrack._id,
+            artistName: savedTrack.artistName,
             title: savedTrack.title,
             genre: savedTrack.genre,
             audioUrl: savedTrack.audioUrl,
@@ -76,7 +78,7 @@ export class TrackService {
         const genreRegex = new RegExp(`^${genre}$`, 'i');
 
         const tracks = await Track.find({ genre: genreRegex })
-            .select('title artistId audioUrl eloScore genre')
+            .select('title artistId artistName audioUrl eloScore genre')
             .sort({ eloScore: -1 })
             .limit(50)
             .lean();

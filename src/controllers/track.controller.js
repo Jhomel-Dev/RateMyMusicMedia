@@ -19,7 +19,7 @@ export const uploadTrack = async (req, res, next) => {
         }
 
         console.log("[uploadTrack] Starting Cloudinary upload...");
-        const result = await trackService.uploadTrack(req.user.id, title, genre, req.file.buffer);
+        const result = await trackService.uploadTrack(req.user.id, req.user.username, title, genre, req.file.buffer);
         console.log("[uploadTrack] Cloudinary upload complete:", JSON.stringify(result));
 
         return res.status(201).json(result);

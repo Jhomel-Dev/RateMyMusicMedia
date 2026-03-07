@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
 
 export const authenticate = (req, res, next) => {
-    console.log("Incoming request to Media auth middleware:", req.method, req.path);
-    console.log("Headers received:", req.headers);
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
