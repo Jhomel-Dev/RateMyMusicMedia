@@ -1,6 +1,7 @@
 import cloudinary from "../config/cloudinary.js";
 import Track from "../models/track.model.js";
 import Vote from "../models/vote.model.js";
+import Favorite from "../models/favorite.model.js";
 
 export class TrackService {
 
@@ -53,23 +54,48 @@ export class TrackService {
     }
 
     async getFeed(userId, genres, limit) {
+        const query = await this._buildFeedQuery(userId, genres);
+        const tracks = await this._fetchFeedTracks(query, limit);
+        const favoritedTrackIds = await this._getUserFavoriteIds(userId, tracks);
+
+        return this._formatFeedResponse(tracks, favoritedTrackIds);
+    }
+
+    async _buildFeedQuery(userId, genres) {
         const userVotes = await Vote.find({ voterId: userId }).select('trackId').lean();
         const votedTrackIds = userVotes.map(vote => vote.trackId);
-
+        
         const query = { _id: { $nin: votedTrackIds } };
-
         if (genres && genres.length > 0) {
             query.genre = { $in: genres };
         }
+        
+        return query;
+    }
 
-        const tracks = await Track.find(query)
+    async _fetchFeedTracks(query, limit) {
+        return await Track.find(query)
             .sort({ eloScore: -1 })
             .limit(limit)
             .lean();
+    }
 
+    async _getUserFavoriteIds(userId, tracks) {
+        const trackIds = tracks.map(t => t._id);
+        const userFavorites = await Favorite.find({
+            userId: userId,
+            trackId: { $in: trackIds }
+        }).lean();
+        
+        return new Set(userFavorites.map(f => f.trackId.toString()));
+    }
+
+    _formatFeedResponse(tracks, favoritedTrackIds) {
         return tracks.map(track => {
-            track.id = track._id.toString();
+            const idStr = track._id.toString();
+            track.id = idStr;
             delete track._id;
+            track.isFavoritedByMe = favoritedTrackIds.has(idStr);
             return track;
         });
     }
