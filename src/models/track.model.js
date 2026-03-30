@@ -7,6 +7,9 @@ const trackSchema = new mongoose.Schema({
     audioUrl: { type: String, required: true },
     genre: { type: String, required: true },
     eloScore: { type: Number, default: 1000 },
+    voteCount: { type: Number, default: 0 },
+    commentCount: { type: Number, default: 0 },
+    favoriteCount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 })
 
