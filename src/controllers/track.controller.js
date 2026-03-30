@@ -50,7 +50,12 @@ export const getFeed = async (req, res, next) => {
         const userId = req.user.id;
         const genres = req.user.genres;
 
-        const tracks = await trackService.getFeed(userId, genres, limitParam);
+        let excludeIds = [];
+        if (req.query.excludeIds) {
+            excludeIds = req.query.excludeIds.split(',').map(id => id.trim()).filter(id => id !== '');
+        }
+
+        const tracks = await trackService.getFeed(userId, genres, limitParam, excludeIds);
 
         if (tracks.length === 0) {
             return res.status(200).json({
@@ -61,6 +66,30 @@ export const getFeed = async (req, res, next) => {
 
         return res.status(200).json({ tracks });
 
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const registerPlay = async (req, res, next) => {
+    try {
+        const { trackId } = req.params;
+        if (!trackId) {
+            throw { status: 400, message: "trackId parameter is required" };
+        }
+        
+        const result = await trackService.registerPlay(trackId);
+        return res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getMyUploads = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const tracks = await trackService.getMyUploads(userId);
+        return res.status(200).json(tracks);
     } catch (error) {
         next(error);
     }
