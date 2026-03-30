@@ -1,12 +1,17 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { uploadMiddleware } from '../middlewares/upload.middleware.js';
-import { uploadTrack, getAllTracks, getFeed, getRankings } from '../controllers/track.controller.js';
+import { uploadTrack, getAllTracks, getFeed, getRankings, registerPlay, getMyUploads } from '../controllers/track.controller.js';
 
 const trackRouter = Router();
 
 trackRouter.get('/',
     getAllTracks
+);
+
+trackRouter.get('/me/uploads',
+    authenticate,
+    getMyUploads
 );
 
 trackRouter.post('/upload',
@@ -22,6 +27,10 @@ trackRouter.get('/feed',
 
 trackRouter.get('/rankings/:genre',
     getRankings
+);
+
+trackRouter.post('/:trackId/play',
+    registerPlay
 );
 
 export default trackRouter;
