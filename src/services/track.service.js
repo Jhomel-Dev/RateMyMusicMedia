@@ -1,6 +1,7 @@
 import cloudinary from "../config/cloudinary.js";
 import Track from "../models/track.model.js";
 import Vote from "../models/vote.model.js";
+import Favorite from "../models/favorite.model.js";
 
 export class TrackService {
 
@@ -52,24 +53,59 @@ export class TrackService {
         });
     }
 
-    async getFeed(userId, genres, limit) {
+    async registerPlay(trackId) {
+        const track = await Track.findByIdAndUpdate(trackId, { $inc: { playCount: 1 } });
+        if (!track) {
+            throw { status: 404, message: "Track not found" };
+        }
+        return { message: "Play registered" };
+    }
+
+    async getFeed(userId, genres, limit, excludeIds = []) {
+        const query = await this._buildFeedQuery(userId, genres, excludeIds);
+        const tracks = await this._fetchFeedTracks(query, limit);
+        const favoritedTrackIds = await this._getUserFavoriteIds(userId, tracks);
+
+        return this._formatFeedResponse(tracks, favoritedTrackIds);
+    }
+
+    async _buildFeedQuery(userId, genres, excludeIds) {
         const userVotes = await Vote.find({ voterId: userId }).select('trackId').lean();
-        const votedTrackIds = userVotes.map(vote => vote.trackId);
-
-        const query = { _id: { $nin: votedTrackIds } };
-
+        const votedTrackIds = userVotes.map(vote => vote.trackId.toString());
+        
+        const combinedExcludeIds = [...new Set([...votedTrackIds, ...excludeIds])];
+        
+        const query = { _id: { $nin: combinedExcludeIds } };
         if (genres && genres.length > 0) {
             query.genre = { $in: genres };
         }
+        
+        return query;
+    }
 
-        const tracks = await Track.find(query)
+    async _fetchFeedTracks(query, limit) {
+        return await Track.find(query)
             .sort({ eloScore: -1 })
             .limit(limit)
             .lean();
+    }
 
+    async _getUserFavoriteIds(userId, tracks) {
+        const trackIds = tracks.map(t => t._id);
+        const userFavorites = await Favorite.find({
+            userId: userId,
+            trackId: { $in: trackIds }
+        }).lean();
+        
+        return new Set(userFavorites.map(f => f.trackId.toString()));
+    }
+
+    _formatFeedResponse(tracks, favoritedTrackIds) {
         return tracks.map(track => {
-            track.id = track._id.toString();
+            const idStr = track._id.toString();
+            track.id = idStr;
             delete track._id;
+            track.isFavoritedByMe = favoritedTrackIds.has(idStr);
             return track;
         });
     }
@@ -85,6 +121,19 @@ export class TrackService {
 
         return tracks.map(track => {
             track.id = track._id.toString();
+            delete track._id;
+            return track;
+        });
+    }
+
+    async getMyUploads(userId) {
+        const tracks = await Track.find({ artistId: userId })
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return tracks.map(track => {
+            const idStr = track._id.toString();
+            track.id = idStr;
             delete track._id;
             return track;
         });
