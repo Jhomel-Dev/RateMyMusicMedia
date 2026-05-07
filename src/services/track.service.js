@@ -76,7 +76,8 @@ export class TrackService {
         const combinedExcludeIds = [...new Set([...votedTrackIds, ...excludeIds])];
         
         const query = { 
-            _id: { $nin: combinedExcludeIds }
+            _id: { $nin: combinedExcludeIds },
+            artistId: { $ne: userId }
         };
         
         if (genres && genres.length > 0) {
